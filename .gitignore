@@ -1,0 +1,42 @@
+# Secrets & credentials
+.env
+.env.*
+service_account.json
+credentials.json
+GRAY_API_REFERENCE.md
+
+# Local data / runtime artifacts
+logistics_bot.db
+*.db
+skybitz_bowman.json
+skybitz_milestone.json
+skybitz_duval.json
+fus1on_fleet.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+venv/
+.venv/
+*.egg-info/
+
+# Node (unrelated scratch artifacts, not part of the bot)
+node_modules/
+package.json
+package-lock.json
+generate_guide.js
+
+# Unrelated / unused stray files
+Gray_Cargo_Bot_Guide.docx
+config.py
+input.java
+
+# Claude Code session files
+.claude/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
