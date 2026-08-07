@@ -32,7 +32,8 @@ from trailer_commands import trailer_cmd_router, set_db as set_trailer_cmd_db, s
 from trailer import set_lifecycle_db
 from providers.skybitz import SkyBitzProvider
 from providers.fus1on import Fus1onProvider
-from providers.phillips import PhillipsProvider
+from providers.phillips import PhillipsProvider, create_webhook_app
+from aiohttp import web
 from providers.registry import ProviderRegistry
 from scheduler import setup_scheduler as setup_main_scheduler, poll_trailer_positions
 
@@ -463,6 +464,17 @@ async def cancel_action(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
+async def start_phillips_webhook(provider: PhillipsProvider):
+    port = int(os.getenv("PHILLIPS_WEBHOOK_PORT", "8443"))
+    app = create_webhook_app(provider)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    # bound to localhost only — Caddy terminates TLS on the public port and proxies here
+    site = web.TCPSite(runner, "127.0.0.1", port)
+    await site.start()
+    logger.info(f"Phillips webhook listening on 127.0.0.1:{port}")
+
+
 async def main():
     dp.include_router(router)
     dp.include_router(tracker_router)
@@ -481,10 +493,12 @@ async def main():
     registry = ProviderRegistry()
     registry.register(Fus1onProvider())
     registry.register(SkyBitzProvider())
-    registry.register(PhillipsProvider())
+    phillips_provider = PhillipsProvider()
+    registry.register(phillips_provider)
     set_trailer_cmd_registry(registry)
 
     setup_main_scheduler(bot, db, registry)
+    await start_phillips_webhook(phillips_provider)
 
     logger.info("Initial trailer position poll...")
     await poll_trailer_positions(db, registry)
