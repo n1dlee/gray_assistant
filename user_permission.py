@@ -125,40 +125,40 @@ def is_user_allowed(user_id: int) -> bool:
 @user_permission_router.message(Command("add_user"))
 async def cmd_add_user(message: Message):
     if not _is_admin(message):
-        await message.reply("❌ У вас нет прав для этой команды.")
+        await message.reply("❌ You don't have permission for this command.")
         return
 
     target_id, label = await _resolve_target_id(message)
     if not target_id:
-        await message.reply("⚠️ Укажи ID, @username или сделай reply.")
+        await message.reply("⚠️ Provide an ID, @username, or reply to a message.")
         return
 
     allowed = get_allowed_user_ids()
     if target_id in allowed:
-        await message.reply(f"⚠️ Уже в списке: {label}")
+        await message.reply(f"⚠️ Already in the list: {label}")
         return
 
     allowed.add(target_id)
     await _update_env_variable("ALLOWED_USER_IDS", _ids_to_csv(allowed))
-    await message.reply(f"✅ Добавлен доступ: {label}")
+    await message.reply(f"✅ Access granted: {label}")
 
 
 @user_permission_router.message(Command("remove_user"))
 async def cmd_remove_user(message: Message):
     if not _is_admin(message):
-        await message.reply("❌ У вас нет прав для этой команды.")
+        await message.reply("❌ You don't have permission for this command.")
         return
 
     target_id, label = await _resolve_target_id(message)
     if not target_id:
-        await message.reply("⚠️ Укажи ID, @username или сделай reply.")
+        await message.reply("⚠️ Provide an ID, @username, or reply to a message.")
         return
 
     allowed = get_allowed_user_ids()
     if target_id not in allowed:
-        await message.reply(f"⚠️ Пользователь не найден в списке: {label}")
+        await message.reply(f"⚠️ User not found in the list: {label}")
         return
 
     allowed.remove(target_id)
     await _update_env_variable("ALLOWED_USER_IDS", _ids_to_csv(allowed))
-    await message.reply(f"🗑 Удалён доступ: {label}")
+    await message.reply(f"🗑 Access removed: {label}")

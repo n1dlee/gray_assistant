@@ -335,9 +335,9 @@ async def handle_message(message: types.Message):
                         chat_id=message.chat.id,
                     )
                     await message.answer(
-                        f"📦 Трейлер `{parsed['trailer_id']}` забран \\#{parsed['truck_number']}\\.\n"
-                        f"Когда возвращать? Ответьте:\n"
-                        f"`/set_return {parsed['trailer_id']} YYYY\\-MM\\-DD Локация`",
+                        f"📦 Trailer `{parsed['trailer_id']}` picked up by \\#{parsed['truck_number']}\\.\n"
+                        f"When should it be returned? Reply:\n"
+                        f"`/set_return {parsed['trailer_id']} YYYY\\-MM\\-DD Location`",
                         parse_mode="MarkdownV2",
                     )
                 elif parsed["status"] == "DROPPED":

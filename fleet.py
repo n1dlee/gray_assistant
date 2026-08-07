@@ -61,7 +61,7 @@ def format_truck_data(vehicles: list, page: int = 0) -> str:
     selected = vehicles[start:end]
 
     if not selected:
-        return "Нет данных на этой странице."
+        return "No data on this page."
 
     lines = []
     for v in selected:
@@ -79,15 +79,15 @@ def format_truck_data(vehicles: list, page: int = 0) -> str:
             f"🔗 [Google Maps](https://www.google.com/maps?q={lat},{lon})"
         )
 
-    return "\n\n".join(lines) if lines else "Нет данных с координатами."
+    return "\n\n".join(lines) if lines else "No data with coordinates."
 
 
 def get_pagination_keyboard(page: int, total: int):
     buttons = []
     if (page + 1) * TRUCKS_PER_PAGE < total:
-        buttons.append(InlineKeyboardButton(text="➡️ Следующая", callback_data=f"fleet_page:{page + 1}"))
+        buttons.append(InlineKeyboardButton(text="➡️ Next", callback_data=f"fleet_page:{page + 1}"))
     if page > 0:
-        buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"fleet_page:{page - 1}"))
+        buttons.append(InlineKeyboardButton(text="⬅️ Back", callback_data=f"fleet_page:{page - 1}"))
 
     if buttons:
         return InlineKeyboardMarkup(inline_keyboard=[buttons])
@@ -97,14 +97,14 @@ def get_pagination_keyboard(page: int, total: int):
 @router.message(Command("fleet"))
 async def cmd_fleet(message: types.Message):
     if not is_admin(message.from_user.id):
-        await message.answer("У вас нет прав для использования этой команды.")
+        await message.answer("You don't have permission to use this command.")
         return
 
     vehicles = await get_all_units_data()
     total = len(vehicles)
 
     if not total:
-        await message.answer("❌ Не удалось получить данные с TTELD API.")
+        await message.answer("❌ Failed to fetch data from TTELD API.")
         return
 
     text = format_truck_data(vehicles, page=0)
@@ -112,7 +112,7 @@ async def cmd_fleet(message: types.Message):
     total_pages = (total + TRUCKS_PER_PAGE - 1) // TRUCKS_PER_PAGE
 
     await message.answer(
-        f"📋 *Флот ({total} траков, стр. 1/{total_pages})*\n\n{text}",
+        f"📋 *Fleet ({total} trucks, page 1/{total_pages})*\n\n{text}",
         parse_mode="Markdown",
         reply_markup=keyboard,
     )
@@ -129,7 +129,7 @@ async def callback_fleet_page(callback: types.CallbackQuery):
     keyboard = get_pagination_keyboard(page, total)
 
     await callback.message.edit_text(
-        f"📋 *Флот ({total} траков, стр. {page + 1}/{total_pages})*\n\n{text}",
+        f"📋 *Fleet ({total} trucks, page {page + 1}/{total_pages})*\n\n{text}",
         parse_mode="Markdown",
         reply_markup=keyboard,
     )

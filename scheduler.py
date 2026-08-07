@@ -45,28 +45,28 @@ async def run_geofence_check(bot: Bot, db: Database):
             if ev.event_type == "arrival":
                 if not ev.has_assignment:
                     msg = (
-                        f"*Неизвестный трейлер на локации!*\n\n"
-                        f"Трейлер: `{ev.trailer_id}`\n"
-                        f"Локация: {ev.landmark_name}\n"
-                        f"Координаты: {ev.latitude}, {ev.longitude}\n"
+                        f"*Unknown trailer at landmark!*\n\n"
+                        f"Trailer: `{ev.trailer_id}`\n"
+                        f"Landmark: {ev.landmark_name}\n"
+                        f"Coordinates: {ev.latitude}, {ev.longitude}\n"
                         f"[Google Maps](https://www.google.com/maps?q={ev.latitude},{ev.longitude})"
                     )
                     await send_alert(bot, db, "unassigned_at_landmark", ev.trailer_id, msg)
                 else:
                     msg = (
-                        f"*Трейлер прибыл на локацию*\n\n"
-                        f"Трейлер: `{ev.trailer_id}`\n"
-                        f"Локация: {ev.landmark_name}\n"
-                        f"Координаты: {ev.latitude}, {ev.longitude}"
+                        f"*Trailer arrived at landmark*\n\n"
+                        f"Trailer: `{ev.trailer_id}`\n"
+                        f"Landmark: {ev.landmark_name}\n"
+                        f"Coordinates: {ev.latitude}, {ev.longitude}"
                     )
                     await send_alert(bot, db, "geofence_arrival", ev.trailer_id, msg)
 
             elif ev.event_type == "departure":
                 msg = (
-                    f"*Трейлер покинул локацию*\n\n"
-                    f"Трейлер: `{ev.trailer_id}`\n"
-                    f"Локация: {ev.landmark_name}\n"
-                    f"Координаты: {ev.latitude}, {ev.longitude}"
+                    f"*Trailer left landmark*\n\n"
+                    f"Trailer: `{ev.trailer_id}`\n"
+                    f"Landmark: {ev.landmark_name}\n"
+                    f"Coordinates: {ev.latitude}, {ev.longitude}"
                 )
                 await send_alert(bot, db, "geofence_departure", ev.trailer_id, msg)
 
@@ -102,15 +102,15 @@ async def run_theft_check(bot: Bot, db: Database):
                 continue
 
             if nearest_truck:
-                detail = f"Ближайший трак: #{nearest_truck} ({distance / 1000:.1f} км)"
+                detail = f"Nearest truck: #{nearest_truck} ({distance / 1000:.1f} km)"
             else:
-                detail = "Траки ELD не найдены"
+                detail = "No ELD trucks found"
 
             msg = (
-                f"*THEFT RISK: Трейлер движется без нашего водителя!*\n\n"
-                f"Трейлер: `{trailer_id}`\n"
-                f"Скорость: {speed}\n"
-                f"Координаты: {lat}, {lon}\n"
+                f"*THEFT RISK: Trailer moving without our driver!*\n\n"
+                f"Trailer: `{trailer_id}`\n"
+                f"Speed: {speed}\n"
+                f"Coordinates: {lat}, {lon}\n"
                 f"{detail}\n"
                 f"[Google Maps](https://www.google.com/maps?q={lat},{lon})"
             )
@@ -127,12 +127,12 @@ async def check_overdue_returns(bot: Bot, db: Database):
         for assignment in overdue:
             a_id, trailer_id, truck, driver, _, _, ret_loc, ret_deadline, _, _, status, _, _ = assignment
             msg = (
-                f"*Просрочен возврат трейлера!*\n\n"
-                f"Трейлер: `{trailer_id}`\n"
-                f"Трак: #{truck}\n"
-                f"Водитель: {driver}\n"
-                f"Дедлайн: {ret_deadline}\n"
-                f"Возврат: {ret_loc or 'не указано'}"
+                f"*Trailer return overdue!*\n\n"
+                f"Trailer: `{trailer_id}`\n"
+                f"Truck: #{truck}\n"
+                f"Driver: {driver}\n"
+                f"Deadline: {ret_deadline}\n"
+                f"Return to: {ret_loc or 'not specified'}"
             )
             await send_alert(bot, db, "overdue_return", trailer_id, msg)
     except Exception as e:
@@ -149,11 +149,11 @@ async def run_idle_check(bot: Bot, db: Database):
                 continue
 
             msg = (
-                f"*Трейлер простаивает 30+ мин!*\n\n"
-                f"Трейлер: `{r.trailer_id}`\n"
-                f"Макс. смещение: {r.max_displacement_m:.0f}м\n"
-                f"Точек GPS: {r.num_points}\n"
-                f"Координаты: {r.latest_lat}, {r.latest_lon}\n"
+                f"*Trailer idle for 30+ min!*\n\n"
+                f"Trailer: `{r.trailer_id}`\n"
+                f"Max displacement: {r.max_displacement_m:.0f}m\n"
+                f"GPS points: {r.num_points}\n"
+                f"Coordinates: {r.latest_lat}, {r.latest_lon}\n"
                 f"[Google Maps](https://www.google.com/maps?q={r.latest_lat},{r.latest_lon})"
             )
             await send_alert(bot, db, "idle_30min", r.trailer_id, msg)

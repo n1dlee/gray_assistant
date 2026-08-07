@@ -19,7 +19,7 @@ def set_db(db: Database) -> None:
 @kick_router.message(Command("kick_user"))
 async def cmd_kick_user(message: types.Message, bot: Bot):
     if not message.from_user or not is_admin(message.from_user.id):
-        await message.reply("❌ У вас нет прав на эту команду.")
+        await message.reply("❌ You don't have permission for this command.")
         return
 
     # цель: reply приоритетнее, иначе аргумент
@@ -32,17 +32,17 @@ async def cmd_kick_user(message: types.Message, bot: Bot):
             target_id = int(parts[1])
 
     if not target_id:
-        await message.reply("⚠ Укажи ID или сделай reply на сообщение пользователя.\nПример: `/kick_user 123456789`",
+        await message.reply("⚠ Provide an ID or reply to the user's message.\nExample: `/kick_user 123456789`",
                             parse_mode="Markdown")
         return
     if _db is None:
-        await message.reply("❌ База данных не инициализирована.")
+        await message.reply("❌ Database not initialized.")
         return
     if target_id == bot.id:
-        await message.reply("🙂 Самого себя кикать не буду.")
+        await message.reply("🙂 Not going to kick myself.")
         return
 
-    await message.reply(f"🚀 Начинаю удалять пользователя `{target_id}` из групп...", parse_mode="Markdown")
+    await message.reply(f"🚀 Removing user `{target_id}` from groups...", parse_mode="Markdown")
 
     chat_ids = _db.get_all_drivers()  # список чатов-водителей из БД
     total = len(chat_ids)
@@ -80,15 +80,15 @@ async def cmd_kick_user(message: types.Message, bot: Bot):
             success += 1
 
         except Exception as e:
-            logging.warning(f"Не удалось кикнуть {target_id} из {chat_id}: {e}")
+            logging.warning(f"Failed to kick {target_id} from {chat_id}: {e}")
             errors += 1
 
     await message.reply(
-        "✅ Готово.\n"
-        f"• Кикнут из: {success}\n"
-        f"• Пропущено (бот не админ/нет права ограничивать): {skipped_not_admin}\n"
-        f"• Пропущено (цель админ/создатель): {skipped_target_admin}\n"
-        f"• Пропущено (цели нет в чате): {skipped_not_member}\n"
-        f"• Ошибок: {errors}\n"
-        f"• Всего групп в БД: {total}"
+        "✅ Done.\n"
+        f"• Kicked from: {success}\n"
+        f"• Skipped (bot not admin/no restrict permission): {skipped_not_admin}\n"
+        f"• Skipped (target is admin/creator): {skipped_target_admin}\n"
+        f"• Skipped (target not in chat): {skipped_not_member}\n"
+        f"• Errors: {errors}\n"
+        f"• Total groups in DB: {total}"
     )

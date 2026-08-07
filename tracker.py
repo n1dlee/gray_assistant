@@ -45,18 +45,18 @@ def _format_vehicle(v: dict) -> str:
     fuel = v.get("fuelLevelPercent")
 
     if lat is None or lng is None:
-        return f"⚠ Координаты не найдены для Unit {unit}"
+        return f"⚠ No coordinates found for Unit {unit}"
 
     lines = [
         f"🆔 <b>Unit:</b> {unit}",
         f"🚗 <b>VIN:</b> {vin}",
-        f"📍 <b>Координаты:</b> {lat}, {lng}",
-        f"🕒 <b>Обновлено:</b> {updated}",
+        f"📍 <b>Coordinates:</b> {lat}, {lng}",
+        f"🕒 <b>Updated:</b> {updated}",
     ]
     if fuel is not None:
-        lines.append(f"⛽ <b>Топливо:</b> {fuel:.0f}%")
+        lines.append(f"⛽ <b>Fuel:</b> {fuel:.0f}%")
     lines.append(
-        f'\n🔗 <a href="https://www.google.com/maps?q={lat},{lng}">Открыть в Google Maps</a>'
+        f'\n🔗 <a href="https://www.google.com/maps?q={lat},{lng}">Open in Google Maps</a>'
     )
     return "\n".join(lines)
 
@@ -88,12 +88,12 @@ async def _fetch_fleet(api_key: str, usdot: str) -> Optional[list]:
 async def _handle_location(message: types.Message, command: CommandObject,
                            api_key: str, usdot: str, fleet_name: str):
     if not is_admin(message.from_user.id):
-        await message.answer("У вас нет прав для использования этой команды.")
+        await message.answer("You don't have permission to use this command.")
         return
 
     if not command.args:
         await message.answer(
-            f"⚠ Укажи номер юнита. Пример: <code>/{fleet_name.lower()} 22203</code>",
+            f"⚠ Please provide a unit number. Example: <code>/{fleet_name.lower()} 22203</code>",
             parse_mode="HTML",
         )
         return
@@ -102,7 +102,7 @@ async def _handle_location(message: types.Message, command: CommandObject,
 
     vehicles = await _fetch_fleet(api_key, usdot)
     if vehicles is None:
-        await message.answer(f"❌ Ошибка при запросе к TTELD API ({fleet_name}). Попробуй позже.")
+        await message.answer(f"❌ Error querying TTELD API ({fleet_name}). Try again later.")
         return
 
     for v in vehicles:
@@ -111,8 +111,8 @@ async def _handle_location(message: types.Message, command: CommandObject,
             return
 
     await message.answer(
-        f"🚫 Юнит <code>{query}</code> не найден в {fleet_name}.\n"
-        f"Всего активных траков: {len(vehicles)}",
+        f"🚫 Unit <code>{query}</code> not found in {fleet_name}.\n"
+        f"Total active trucks: {len(vehicles)}",
         parse_mode="HTML",
     )
 

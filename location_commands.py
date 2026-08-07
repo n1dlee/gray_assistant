@@ -20,18 +20,18 @@ def set_db(db: Database):
 @location_router.message(Command("landmarks"))
 async def cmd_landmarks(message: types.Message):
     if not is_admin(message.from_user.id):
-        await message.answer("У вас нет прав для этой команды.")
+        await message.answer("You don't have permission for this command.")
         return
 
     landmarks = _db.get_landmarks()
     if not landmarks:
-        await message.answer("📍 Нет активных локаций.")
+        await message.answer("📍 No active landmarks.")
         return
 
-    lines = ["📍 *Активные локации:*\n"]
+    lines = ["📍 *Active landmarks:*\n"]
     for lm in landmarks:
         lm_id, name, lat, lon, radius, address, _, _ = lm
-        line = f"*{lm_id}.* {name}\n   📡 {lat}, {lon} (радиус: {radius}м)"
+        line = f"*{lm_id}.* {name}\n   📡 {lat}, {lon} (radius: {radius}m)"
         if address:
             line += f"\n   🏠 {address}"
         lines.append(line)
@@ -42,20 +42,20 @@ async def cmd_landmarks(message: types.Message):
 @location_router.message(Command("add_landmark"))
 async def cmd_add_landmark(message: types.Message, command: CommandObject):
     if not is_admin(message.from_user.id):
-        await message.answer("У вас нет прав для этой команды.")
+        await message.answer("You don't have permission for this command.")
         return
 
     if not command.args:
         await message.answer(
-            "⚠️ Формат: `/add_landmark Название Лат Лон [Радиус]`\n"
-            "Пример: `/add_landmark GrayYard 32.7767 -96.7970 300`",
+            "⚠️ Format: `/add_landmark Name Lat Lon [Radius]`\n"
+            "Example: `/add_landmark GrayYard 32.7767 -96.7970 300`",
             parse_mode="Markdown",
         )
         return
 
     parts = command.args.split()
     if len(parts) < 3:
-        await message.answer("⚠️ Нужно минимум 3 аргумента: название, широта, долгота.")
+        await message.answer("⚠️ Need at least 3 arguments: name, latitude, longitude.")
         return
 
     name = parts[0]
@@ -63,7 +63,7 @@ async def cmd_add_landmark(message: types.Message, command: CommandObject):
         lat = float(parts[1])
         lon = float(parts[2])
     except ValueError:
-        await message.answer("⚠️ Широта и долгота должны быть числами.")
+        await message.answer("⚠️ Latitude and longitude must be numbers.")
         return
 
     radius = 200.0
@@ -80,22 +80,22 @@ async def cmd_add_landmark(message: types.Message, command: CommandObject):
 
     if lm_id > 0:
         await message.answer(
-            f"✅ Локация добавлена (ID: {lm_id})\n"
-            f"📍 {name}: {lat}, {lon} (радиус: {radius}м)"
+            f"✅ Landmark added (ID: {lm_id})\n"
+            f"📍 {name}: {lat}, {lon} (radius: {radius}m)"
         )
     else:
-        await message.answer("❌ Ошибка при добавлении локации.")
+        await message.answer("❌ Error adding landmark.")
 
 
 @location_router.message(Command("edit_landmark"))
 async def cmd_edit_landmark(message: types.Message, command: CommandObject):
     if not is_admin(message.from_user.id):
-        await message.answer("У вас нет прав для этой команды.")
+        await message.answer("You don't have permission for this command.")
         return
 
     if not command.args:
         await message.answer(
-            "⚠️ Формат: `/edit_landmark ID name=Новое radius=500`",
+            "⚠️ Format: `/edit_landmark ID name=New radius=500`",
             parse_mode="Markdown",
         )
         return
@@ -104,7 +104,7 @@ async def cmd_edit_landmark(message: types.Message, command: CommandObject):
     try:
         lm_id = int(parts[0])
     except ValueError:
-        await message.answer("⚠️ Первый аргумент — ID локации (число).")
+        await message.answer("⚠️ First argument must be the landmark ID (number).")
         return
 
     kwargs = {}
@@ -121,32 +121,32 @@ async def cmd_edit_landmark(message: types.Message, command: CommandObject):
                     pass
 
     if not kwargs:
-        await message.answer("⚠️ Не указаны параметры для изменения. Пример: `name=NewName radius=300`")
+        await message.answer("⚠️ No parameters given to update. Example: `name=NewName radius=300`")
         return
 
     if _db.update_landmark(lm_id, **kwargs):
-        await message.answer(f"✅ Локация {lm_id} обновлена.")
+        await message.answer(f"✅ Landmark {lm_id} updated.")
     else:
-        await message.answer(f"❌ Локация {lm_id} не найдена или не обновлена.")
+        await message.answer(f"❌ Landmark {lm_id} not found or not updated.")
 
 
 @location_router.message(Command("remove_landmark"))
 async def cmd_remove_landmark(message: types.Message, command: CommandObject):
     if not is_admin(message.from_user.id):
-        await message.answer("У вас нет прав для этой команды.")
+        await message.answer("You don't have permission for this command.")
         return
 
     if not command.args:
-        await message.answer("⚠️ Укажите ID локации: `/remove_landmark 1`", parse_mode="Markdown")
+        await message.answer("⚠️ Provide a landmark ID: `/remove_landmark 1`", parse_mode="Markdown")
         return
 
     try:
         lm_id = int(command.args.strip())
     except ValueError:
-        await message.answer("⚠️ ID должен быть числом.")
+        await message.answer("⚠️ ID must be a number.")
         return
 
     if _db.deactivate_landmark(lm_id):
-        await message.answer(f"🗑 Локация {lm_id} удалена.")
+        await message.answer(f"🗑 Landmark {lm_id} removed.")
     else:
-        await message.answer(f"❌ Локация {lm_id} не найдена.")
+        await message.answer(f"❌ Landmark {lm_id} not found.")

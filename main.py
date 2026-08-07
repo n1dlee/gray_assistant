@@ -68,18 +68,18 @@ def is_admin_user(user_id: int) -> bool:
 
 def get_broadcast_type_keyboard():
     builder = InlineKeyboardBuilder()
-    builder.button(text="📝 Только текст", callback_data="broadcast_text")
-    builder.button(text="🖼 Фото с подписью", callback_data="broadcast_photo")
-    builder.button(text="🎥 Видео с подписью", callback_data="broadcast_video")
-    builder.button(text="📄 PDF с подписью", callback_data="broadcast_pdf")
-    builder.button(text="❌ Отмена", callback_data="cancel_action")
+    builder.button(text="📝 Text only", callback_data="broadcast_text")
+    builder.button(text="🖼 Photo with caption", callback_data="broadcast_photo")
+    builder.button(text="🎥 Video with caption", callback_data="broadcast_video")
+    builder.button(text="📄 PDF with caption", callback_data="broadcast_pdf")
+    builder.button(text="❌ Cancel", callback_data="cancel_action")
     builder.adjust(2)
     return builder.as_markup()
 
 
 def get_cancel_keyboard():
     builder = InlineKeyboardBuilder()
-    builder.button(text="❌ Отмена", callback_data="cancel_action")
+    builder.button(text="❌ Cancel", callback_data="cancel_action")
     return builder.as_markup()
 
 
@@ -242,15 +242,15 @@ async def cmd_start(message: Message):
     if message.chat.type != "private":
         # Тут title уже есть в message.chat, без get_chat
         if not is_driver_group(message.chat.title):
-            await message.answer("Этот бот работает только в группах водителей.")
+            await message.answer("This bot only works in driver groups.")
             return
 
         truck_number = get_truck_number(message.chat.title)
         if truck_number:
             db.add_driver_chat(message.chat.id, truck_number)
-            await message.answer(f"Чат добавлен в группу водителей (Truck #{truck_number})")
+            await message.answer(f"Chat added to driver groups (Truck #{truck_number})")
 
-    await message.answer(f"Привет, {user_name}!\nИспользуйте /help для просмотра доступных команд.")
+    await message.answer(f"Hi, {user_name}!\nUse /help to see the available commands.")
 
 
 @router.message(Command("help"))
@@ -261,38 +261,38 @@ async def cmd_help(message: Message):
 @router.message(Command("join"))
 async def cmd_join(message: Message):
     if not is_admin_user(message.from_user.id):
-        await message.answer("У вас нет прав для использования этой команды.")
+        await message.answer("You don't have permission to use this command.")
         return
 
     if message.chat.type == "private":
-        await message.answer("Эта команда должна использоваться в группе.")
+        await message.answer("This command must be used in a group.")
         return
 
     # Тут title уже есть, не нужен get_chat
     if not is_driver_group(message.chat.title):
-        await message.answer("Этот бот может быть добавлен только в группы водителей.")
+        await message.answer("This bot can only be added to driver groups.")
         return
 
     truck_number = get_truck_number(message.chat.title)
     if truck_number and db.add_driver_chat(message.chat.id, truck_number):
-        await message.answer(f"Группа успешно добавлена (Truck #{truck_number})")
+        await message.answer(f"Group added successfully (Truck #{truck_number})")
     else:
-        await message.answer("Эта группа уже добавлена или произошла ошибка.")
+        await message.answer("This group is already added, or an error occurred.")
 
 
 @router.message(Command("drivers"))
 async def cmd_drivers(message: Message):
     if not is_admin_user(message.from_user.id):
-        await message.answer("У вас нет прав для использования этой команды.")
+        await message.answer("You don't have permission to use this command.")
         return
 
     driver_chats = db.get_all_drivers()
     if not driver_chats:
-        await message.answer("Список групп водителей пуст.")
+        await message.answer("The driver group list is empty.")
         return
 
     # Здесь get_chat допустим, потому что это не broadcast, а редкая команда.
-    result = "📋 Список групп водителей:\n\n"
+    result = "📋 Driver group list:\n\n"
     for chat_id in driver_chats:
         try:
             chat = await bot.get_chat(chat_id)
@@ -310,37 +310,37 @@ async def cmd_drivers(message: Message):
 @router.message(Command("broadcast"))
 async def cmd_broadcast(message: Message, state: FSMContext):
     if not is_admin_user(message.from_user.id):
-        await message.answer("У вас нет прав для использования этой команды.")
+        await message.answer("You don't have permission to use this command.")
         return
 
-    await message.answer("Выберите тип рассылки:", reply_markup=get_broadcast_type_keyboard())
+    await message.answer("Choose a broadcast type:", reply_markup=get_broadcast_type_keyboard())
     await state.set_state(AdminStates.broadcast_type)
 
 
 @router.callback_query(F.data == "broadcast_text")
 async def process_broadcast_text_type(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Введите текст сообщения для рассылки:", reply_markup=get_cancel_keyboard())
+    await callback.message.edit_text("Enter the broadcast message text:", reply_markup=get_cancel_keyboard())
     await state.set_state(AdminStates.broadcast_text)
     await callback.answer()
 
 
 @router.callback_query(F.data == "broadcast_photo")
 async def process_broadcast_photo_type(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Отправьте фотографию для рассылки:", reply_markup=get_cancel_keyboard())
+    await callback.message.edit_text("Send the photo to broadcast:", reply_markup=get_cancel_keyboard())
     await state.set_state(AdminStates.broadcast_photo)
     await callback.answer()
 
 
 @router.callback_query(F.data == "broadcast_video")
 async def process_broadcast_video_type(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Отправьте видео для рассылки:", reply_markup=get_cancel_keyboard())
+    await callback.message.edit_text("Send the video to broadcast:", reply_markup=get_cancel_keyboard())
     await state.set_state(AdminStates.broadcast_video)
     await callback.answer()
 
 
 @router.callback_query(F.data == "broadcast_pdf")
 async def process_broadcast_pdf_type(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Отправьте PDF файл для рассылки:", reply_markup=get_cancel_keyboard())
+    await callback.message.edit_text("Send the PDF file to broadcast:", reply_markup=get_cancel_keyboard())
     await state.set_state(AdminStates.broadcast_pdf)
     await callback.answer()
 
@@ -349,9 +349,9 @@ async def process_broadcast_pdf_type(callback: CallbackQuery, state: FSMContext)
 async def process_broadcast_text(message: Message, state: FSMContext):
     successful, failed = await broadcast_to_driver_chats_text(message.text)
     await message.answer(
-        "📊 Результаты рассылки:\n"
-        f"✅ Успешно отправлено: {successful}\n"
-        f"❌ Не отправлено: {failed}"
+        "📊 Broadcast results:\n"
+        f"✅ Sent successfully: {successful}\n"
+        f"❌ Failed: {failed}"
     )
     await state.clear()
 
@@ -360,7 +360,7 @@ async def process_broadcast_text(message: Message, state: FSMContext):
 async def process_broadcast_photo(message: Message, state: FSMContext):
     await state.update_data(photo_id=message.photo[-1].file_id)
     await message.answer(
-        "Теперь введите подпись к фотографии (или отправьте /skip для рассылки без подписи):",
+        "Now enter a caption for the photo (or send /skip to broadcast without one):",
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(AdminStates.broadcast_caption)
@@ -368,7 +368,7 @@ async def process_broadcast_photo(message: Message, state: FSMContext):
 
 @router.message(AdminStates.broadcast_photo)
 async def process_invalid_photo(message: Message):
-    await message.answer("Пожалуйста, отправьте фотографию.")
+    await message.answer("Please send a photo.")
 
 
 @router.message(AdminStates.broadcast_caption)
@@ -380,9 +380,9 @@ async def process_broadcast_caption(message: Message, state: FSMContext):
     successful, failed = await broadcast_to_driver_chats_photo(photo_id, caption)
 
     await message.answer(
-        "📊 Результаты рассылки фото:\n"
-        f"✅ Успешно отправлено: {successful}\n"
-        f"❌ Не отправлено: {failed}"
+        "📊 Photo broadcast results:\n"
+        f"✅ Sent successfully: {successful}\n"
+        f"❌ Failed: {failed}"
     )
     await state.clear()
 
@@ -391,7 +391,7 @@ async def process_broadcast_caption(message: Message, state: FSMContext):
 async def process_broadcast_video_file(message: Message, state: FSMContext):
     await state.update_data(video_id=message.video.file_id)
     await message.answer(
-        "Введите подпись к видео (или отправьте /skip, чтобы отправить без подписи):",
+        "Enter a caption for the video (or send /skip to broadcast without one):",
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(AdminStates.broadcast_video_caption)
@@ -399,7 +399,7 @@ async def process_broadcast_video_file(message: Message, state: FSMContext):
 
 @router.message(AdminStates.broadcast_video)
 async def process_invalid_video(message: Message):
-    await message.answer("Пожалуйста, отправьте видеофайл.")
+    await message.answer("Please send a video file.")
 
 
 @router.message(AdminStates.broadcast_video_caption)
@@ -411,9 +411,9 @@ async def process_video_caption(message: Message, state: FSMContext):
     successful, failed = await broadcast_to_driver_chats_video(video_id, caption)
 
     await message.answer(
-        "📊 Результаты рассылки видео:\n"
-        f"✅ Успешно отправлено: {successful}\n"
-        f"❌ Не отправлено: {failed}"
+        "📊 Video broadcast results:\n"
+        f"✅ Sent successfully: {successful}\n"
+        f"❌ Failed: {failed}"
     )
     await state.clear()
 
@@ -423,12 +423,12 @@ async def process_broadcast_pdf_file(message: Message, state: FSMContext):
     doc = message.document
 
     if doc.mime_type != "application/pdf" and not (doc.file_name or "").lower().endswith(".pdf"):
-        await message.answer("Пожалуйста, отправьте именно PDF файл.")
+        await message.answer("Please send an actual PDF file.")
         return
 
     await state.update_data(pdf_file_id=doc.file_id)
     await message.answer(
-        "Введите подпись к PDF (или отправьте /skip для рассылки без подписи):",
+        "Enter a caption for the PDF (or send /skip to broadcast without one):",
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(AdminStates.broadcast_pdf_caption)
@@ -436,7 +436,7 @@ async def process_broadcast_pdf_file(message: Message, state: FSMContext):
 
 @router.message(AdminStates.broadcast_pdf)
 async def process_invalid_pdf(message: Message):
-    await message.answer("Пожалуйста, отправьте PDF как документ.")
+    await message.answer("Please send the PDF as a document.")
 
 
 @router.message(AdminStates.broadcast_pdf_caption)
@@ -448,9 +448,9 @@ async def process_broadcast_pdf_caption(message: Message, state: FSMContext):
     successful, failed = await broadcast_to_driver_chats_pdf(pdf_file_id, caption)
 
     await message.answer(
-        "📊 Результаты рассылки PDF:\n"
-        f"✅ Успешно отправлено: {successful}\n"
-        f"❌ Не отправлено: {failed}"
+        "📊 PDF broadcast results:\n"
+        f"✅ Sent successfully: {successful}\n"
+        f"❌ Failed: {failed}"
     )
     await state.clear()
 
@@ -460,7 +460,7 @@ async def cancel_action(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     if current_state:
         await state.clear()
-        await callback.message.edit_text("Действие отменено.")
+        await callback.message.edit_text("Action cancelled.")
     await callback.answer()
 
 

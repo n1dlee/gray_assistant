@@ -6,35 +6,35 @@ import pytz
 
 # Константы
 HELP_MESSAGE = """
-📱 *Доступные команды*:
+📱 *Available commands*:
 
-*Общие команды:*
-/start \\- Начать работу с ботом  
-/help \\- Показать это сообщение помощи
+*General commands:*
+/start \\- Start using the bot
+/help \\- Show this help message
 
-*Команды для администраторов:*
-/join \\- Добавить текущую группу водителей в систему  
-/broadcast \\- Начать новую рассылку \\(текст, фото или видео\\)  
-/drivers \\- Просмотр списка групп водителей  
-/fleet \\- Показывает местонахождение всех водителей  
-/location \\(номер трака\\)\\- Показывает местонахождение конкретного водителя по номеру трака  
-/add\\_user \\- Дает доступ к пользователю
-/remove\\_user \\- Удаляет доступ у пользователя
-/landmarks \\- Просмотр списка геозон
-/add\\_landmark \\- Добавить новую геозону
-/edit\\_landmark \\- Редактировать геозону
-/remove\\_landmark \\- Удалить геозону
-/trailers \\- Активные назначения трейлеров
-/trailer \\(ID\\) \\- Детали трейлера
-/set\\_return \\- Установить дедлайн возврата
-/overdue \\- Просроченные возвраты
+*Admin commands:*
+/join \\- Add the current group to the driver system
+/broadcast \\- Start a new broadcast \\(text, photo or video\\)
+/drivers \\- View the list of driver groups
+/fleet \\- Shows the location of all drivers
+/location \\(truck number\\)\\- Shows the location of a specific driver by truck number
+/add\\_user \\- Grant a user access
+/remove\\_user \\- Revoke a user's access
+/landmarks \\- View the list of landmarks
+/add\\_landmark \\- Add a new landmark
+/edit\\_landmark \\- Edit a landmark
+/remove\\_landmark \\- Remove a landmark
+/trailers \\- Active trailer assignments
+/trailer \\(ID\\) \\- Trailer details
+/set\\_return \\- Set a return deadline
+/overdue \\- Overdue returns
 
-*О боте:*  
-Этот бот предназначен для управления коммуникацией с водителями\\.  
-Работает только в группах водителей \\(формат названия: \\#НОМЕР ИМЯ\\)\\.  
+*About the bot:*
+This bot manages communication with drivers\\.
+Works only in driver groups \\(name format: \\#NUMBER NAME\\)\\.
 
-*Нужна помощь?*  
-Свяжитесь с разработчиком: @n1dleee
+*Need help?*
+Contact the developer: @n1dleee
 """
 
 
@@ -633,14 +633,14 @@ class Database:
 def format_scheduled_messages(messages: List[Tuple]) -> str:
     """Форматирует список запланированных сообщений для вывода"""
     if not messages:
-        return "📝 Нет активных запланированных сообщений"
-    
-    result = "📅 *Запланированные сообщения:*\n\n"
+        return "📝 No active scheduled messages"
+
+    result = "📅 *Scheduled messages:*\n\n"
     for msg_id, text, time, created_at in messages:
         result += f"*ID:* {msg_id}\n"
-        result += f"*Время отправки:* {time}\n"
-        result += f"*Создано:* {created_at}\n"
-        result += f"*Текст:*\n{text[:100]}{'...' if len(text) > 100 else ''}\n\n"
+        result += f"*Send time:* {time}\n"
+        result += f"*Created:* {created_at}\n"
+        result += f"*Text:*\n{text[:100]}{'...' if len(text) > 100 else ''}\n\n"
     return result
 
 def is_driver_group(chat_title: str) -> bool:
