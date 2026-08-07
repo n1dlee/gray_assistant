@@ -507,6 +507,7 @@ async def main():
         try:
             logger.info("Запуск polling...")
             await dp.start_polling(bot)
+            break  # aiogram handled SIGINT/SIGTERM and returned cleanly — stop, don't restart
         except Exception as e:
             logger.exception(f"Ошибка polling: {e}")
             await asyncio.sleep(5)
