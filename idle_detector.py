@@ -56,12 +56,18 @@ def check_idle_single(points: list[tuple]) -> Optional[float]:
 
 
 def detect_idle_trailers(db: Database) -> list[IdleResult]:
+    assigned_trailer_ids = {a[1] for a in db.get_active_assignments()}
+    if not assigned_trailer_ids:
+        return []
+
     positions = db.get_trailer_positions()
     results: list[IdleResult] = []
 
     seen_trailers = set()
     for pos in positions:
         trailer_id = pos[0]
+        if trailer_id not in assigned_trailer_ids:
+            continue
         if trailer_id in seen_trailers:
             continue
         seen_trailers.add(trailer_id)

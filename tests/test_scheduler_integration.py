@@ -13,10 +13,11 @@ def db(tmp_path):
 
 
 def test_poll_and_idle_pipeline(db):
-    """Simulate: positions recorded → idle detection finds idle trailer."""
+    """Simulate: positions recorded → idle detection finds idle trailer (only for assigned trailers)."""
     trailer_id = "EJGZ_IDLE_INT"
     base_lat, base_lon = 32.7767, -96.7970
 
+    db.create_assignment(trailer_id, truck_number="22203", driver_name="Test Driver")
     db.upsert_trailer_position(trailer_id, "roadready", base_lat, base_lon)
 
     for i in range(6):
