@@ -42,7 +42,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 CREDENTIALS_FILE = "credentials.json"
-SPREADSHEET_ID = "11mm30FrLhV62qAlpqEIMxXwYk0vGcesxWYZ-UREh49s"
+SPREADSHEET_ID = "1Eq2wvDnmvtF0WqVD_mrSiD1K4pyf2LtsE_iw_-AMU6I"
 
 creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, SCOPES)
 client = gspread.authorize(creds)
