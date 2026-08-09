@@ -74,8 +74,14 @@ async def run_geofence_check(bot: Bot, db: Database):
         logger.exception("Geofence check error: %s", e)
 
 
-async def run_theft_check(bot: Bot, db: Database):
+async def run_theft_check(bot: Bot, db: Database, registry: ProviderRegistry):
     try:
+        # refresh trailer positions first — theft check compares against a
+        # *live* truck position, so a stale (up to 30min old) trailer fix
+        # can make a truck that is actually right next to the trailer look
+        # tens of km away
+        await poll_trailer_positions(db, registry)
+
         positions = db.get_trailer_positions()
         if not positions:
             return
@@ -191,7 +197,7 @@ def setup_scheduler(bot: Bot, db: Database, registry: ProviderRegistry) -> Async
     )
     scheduler.add_job(
         run_theft_check, "interval", hours=2,
-        args=[bot, db], id="check_theft",
+        args=[bot, db, registry], id="check_theft",
     )
     scheduler.add_job(
         cleanup_position_history, "interval", hours=2,
