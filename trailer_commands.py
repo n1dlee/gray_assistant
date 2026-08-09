@@ -144,14 +144,14 @@ async def cmd_trailer_detail(message: types.Message, command: CommandObject):
 
         with_driver, nearest_truck, distance = await is_trailer_with_our_driver(lat, lon)
         if with_driver:
-            eld_line = f"ELD Match: Truck #{nearest_truck} ({distance / 1000:.1f} km)"
+            eld_line = f"ELD Match: Truck #{nearest_truck} ({distance / 1609.344:.1f} mi)"
             if assignment and assignment[3]:
                 eld_line += f"\nDriver: {assignment[3]} (per #pick)"
             lines.append(eld_line)
         elif nearest_truck:
             lines.append(
                 f"ELD: No ELD Connection\n"
-                f"(nearest truck: #{nearest_truck}, {distance / 1000:.1f} km away)"
+                f"(nearest truck: #{nearest_truck}, {distance / 1609.344:.1f} mi away)"
             )
         else:
             lines.append("ELD: No ELD Connection (no ELD trucks found)")

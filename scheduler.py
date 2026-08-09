@@ -108,7 +108,7 @@ async def run_theft_check(bot: Bot, db: Database, registry: ProviderRegistry):
                 continue
 
             if nearest_truck:
-                detail = f"Nearest truck: #{nearest_truck} ({distance / 1000:.1f} km)"
+                detail = f"Nearest truck: #{nearest_truck} ({distance / 1609.344:.1f} mi)"
             else:
                 detail = "No ELD trucks found"
 
