@@ -9,6 +9,7 @@ from user_permission import is_admin
 from function import Database
 from trailer_lifecycle import set_return_deadline, get_overdue_returns
 from providers.registry import ProviderRegistry
+from theft_detector import is_trailer_with_our_driver
 
 logger = logging.getLogger(__name__)
 trailer_cmd_router = Router(name="trailer_commands")
@@ -140,6 +141,20 @@ async def cmd_trailer_detail(message: types.Message, command: CommandObject):
         if raw_status:
             lines.append(f"Status: {raw_status}")
         lines.append(f"Updated: {updated}")
+
+        with_driver, nearest_truck, distance = await is_trailer_with_our_driver(lat, lon)
+        if with_driver:
+            eld_line = f"ELD Match: Truck #{nearest_truck} ({distance / 1000:.1f} km)"
+            if assignment and assignment[3]:
+                eld_line += f"\nDriver: {assignment[3]} (per #pick)"
+            lines.append(eld_line)
+        elif nearest_truck:
+            lines.append(
+                f"ELD: No ELD Connection\n"
+                f"(nearest truck: #{nearest_truck}, {distance / 1000:.1f} km away)"
+            )
+        else:
+            lines.append("ELD: No ELD Connection (no ELD trucks found)")
 
     if assignment:
         lines.append("")
