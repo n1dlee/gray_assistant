@@ -48,6 +48,7 @@ async def _ensure_fresh_data():
                 longitude=pos.longitude,
                 speed=pos.speed,
                 raw_status=pos.raw_status,
+                updated_at=pos.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             )
         _last_poll_time = time.monotonic()
         logger.info("On-demand trailer poll: %d positions refreshed", len(positions))

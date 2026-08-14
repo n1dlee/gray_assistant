@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -13,6 +14,7 @@ from theft_detector import is_trailer_with_our_driver
 logger = logging.getLogger(__name__)
 
 MOVING_SPEED_THRESHOLD = 5.0
+STALE_POSITION_MINUTES = 15
 
 
 async def poll_trailer_positions(db: Database, registry: ProviderRegistry):
@@ -26,6 +28,7 @@ async def poll_trailer_positions(db: Database, registry: ProviderRegistry):
                 longitude=pos.longitude,
                 speed=pos.speed,
                 raw_status=pos.raw_status,
+                updated_at=pos.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             )
             db.add_position_history(pos.trailer_id, pos.latitude, pos.longitude)
         logger.info("Polled %d trailer positions", len(positions))
@@ -77,9 +80,8 @@ async def run_geofence_check(bot: Bot, db: Database):
 async def run_theft_check(bot: Bot, db: Database, registry: ProviderRegistry):
     try:
         # refresh trailer positions first — theft check compares against a
-        # *live* truck position, so a stale (up to 30min old) trailer fix
-        # can make a truck that is actually right next to the trailer look
-        # tens of km away
+        # *live* truck position, so a stale trailer fix can make a truck that
+        # is actually right next to the trailer look many miles away
         await poll_trailer_positions(db, registry)
 
         positions = db.get_trailer_positions()
@@ -87,10 +89,26 @@ async def run_theft_check(bot: Bot, db: Database, registry: ProviderRegistry):
             return
 
         checked = 0
+        skipped_stale = 0
         for pos in positions:
-            trailer_id, _provider, lat, lon, speed, raw_status, _updated = pos
+            trailer_id, _provider, lat, lon, speed, raw_status, updated = pos
             if lat is None or lon is None:
                 continue
+
+            # updated_at is the trailer tracker's own reported fix time, not
+            # when we polled it — some providers (SkyBitz especially) only
+            # ping every 10-20+ min, so a "fresh" poll can still return an
+            # old fix. Comparing that against a live truck position produces
+            # false THEFT RISK alerts, so skip trailers we can't trust yet.
+            if updated:
+                try:
+                    updated_dt = datetime.strptime(updated, "%Y-%m-%d %H:%M:%S")
+                    age_minutes = (datetime.utcnow() - updated_dt).total_seconds() / 60
+                    if age_minutes > STALE_POSITION_MINUTES:
+                        skipped_stale += 1
+                        continue
+                except ValueError:
+                    pass
 
             is_moving = False
             if speed is not None and speed > MOVING_SPEED_THRESHOLD:
@@ -122,7 +140,7 @@ async def run_theft_check(bot: Bot, db: Database, registry: ProviderRegistry):
             )
             await send_alert(bot, db, "theft_risk", trailer_id, msg)
 
-        logger.info("Theft check: %d moving trailers checked", checked)
+        logger.info("Theft check: %d moving trailers checked, %d skipped as stale", checked, skipped_stale)
     except Exception as e:
         logger.exception("Theft check error: %s", e)
 

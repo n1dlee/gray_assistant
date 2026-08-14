@@ -361,17 +361,19 @@ class Database:
 
     def upsert_trailer_position(self, trailer_id: str, provider: str,
                                 latitude: float, longitude: float,
-                                speed: float = None, raw_status: str = None) -> bool:
+                                speed: float = None, raw_status: str = None,
+                                updated_at: str = None) -> bool:
         try:
             cursor = self.conn.cursor()
+            ts = updated_at or datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute(
                 """INSERT INTO trailer_positions (trailer_id, provider, latitude, longitude, speed, raw_status, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(trailer_id, provider)
                    DO UPDATE SET latitude=excluded.latitude, longitude=excluded.longitude,
                                  speed=excluded.speed, raw_status=excluded.raw_status,
-                                 updated_at=CURRENT_TIMESTAMP""",
-                (trailer_id, provider, latitude, longitude, speed, raw_status),
+                                 updated_at=excluded.updated_at""",
+                (trailer_id, provider, latitude, longitude, speed, raw_status, ts),
             )
             self.conn.commit()
             return True
