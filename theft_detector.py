@@ -10,7 +10,8 @@ from geofence import haversine_meters
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-PROXIMITY_THRESHOLD_M = 3000
+PROXIMITY_THRESHOLD_MILES = 20
+PROXIMITY_THRESHOLD_M = PROXIMITY_THRESHOLD_MILES * 1609.344
 
 TTELD_PROVIDER_TOKEN = os.getenv("TTELD_PROVIDER_TOKEN", "")
 FLEETS = [
